@@ -1,0 +1,485 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>手搓VLESS節點生成器</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            padding: 30px;
+            text-align: center;
+            position: relative;
+        }
+        
+        h1 {
+            color: #333;
+            margin-bottom: 20px;
+            font-size: 2rem;
+            text-align: center;
+        }
+        
+        #results {
+            margin-top: 20px;
+        }
+        
+        #results p {
+            color: #666;
+            text-align: center;
+            margin: 20px 0;
+        }
+
+        .copy-all-btn {
+            display: inline-block;
+            width: 50%;
+            padding: 12px;
+            margin: 20px 1%;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        .copy-all-btn:hover {
+            background-color: #45a049;
+        }
+
+        .copy-all-btn:active {
+            background-color: #3e8e41;
+        }
+        
+        .generate-btn {
+            background-color: #FF9800;
+        }
+        
+        .generate-btn:hover {
+            background-color: #F57C00;
+        }
+        
+        .generate-btn:active {
+            background-color: #E65100;
+        }
+
+        .copy-all-btn.copied {
+            background-color: #2196F3;
+        }
+        
+        h2 {
+            color: #444;
+            margin: 20px 0;
+            font-size: 1.5rem;
+            border-bottom: 2px solid #FF9800;
+            padding-bottom: 10px;
+        }
+        
+        ul {
+            list-style-type: none;
+            padding: 0;
+        }
+        
+        li {
+            background: #f8f9fa;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 15px;
+            border-left: 4px solid #FF9800;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            position: relative;
+        }
+        
+        li:hover {
+            transform: translateX(10px);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+        }
+        
+        li a {
+            display: block;
+            font-weight: 600;
+            color: #FF9800;
+            text-decoration: none;
+            margin-bottom: 8px;
+            font-size: 1.1rem;
+        }
+        
+        li a:hover {
+            text-decoration: underline;
+        }
+        
+        .link {
+            display: block;
+            font-size: 0.9rem;
+            color: #666;
+            word-break: break-all;
+            font-family: 'Courier New', monospace;
+        }
+        .preset-link {
+            color: #2196F3;
+            text-decoration: underline;
+            cursor: pointer;
+            transition: color 0.3s ease;
+        }
+        .preset-link:hover {
+            color: #1976D2;
+        }
+        
+        .copy-tip {
+            position: absolute;
+            right: 20px;
+            top: 50%;
+            transform: translateY(-50%);
+            background-color: #4CAF50;
+            color: white;
+            padding: 4px 12px;
+            border-radius: 4px;
+            font-size: 0.8rem;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            pointer-events: none;
+            z-index: 10;
+        }
+
+        /* 響應式設計 */
+        @media (max-width: 768px) {
+            /* 頁面邊距 */
+            body {
+                padding: 10px;
+                font-size: 16px;
+                line-height: 1.5;
+            }
+            
+            /* 容器調整 */
+            .container {
+                padding: 15px;
+                margin: 10px auto;
+                box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            }
+            
+            /* 按鈕調整 */
+            .copy-all-btn {
+                width: 100%;
+                margin: 15px 0;
+                font-size: 18px;
+                padding: 15px;
+            }
+            
+            /* 標題字體大小 */
+            h1 {
+                font-size: 1.5rem;
+                margin-bottom: 15px;
+            }
+            
+            h2 {
+                font-size: 1.2rem;
+            }
+            
+            /* 節點列表項調整 */
+            li {
+                padding: 12px;
+                margin-bottom: 12px;
+            }
+            
+            li a {
+                font-size: 0.9rem;
+            }
+            
+            /* 作者GitHub鏈接調整 */
+            .container > div:first-child {
+                position: relative;
+                top: 0;
+                right: 0;
+                margin-bottom: 15px;
+                text-align: center;
+            }
+            
+            /* IP來源鏈接區域調整 */
+            div[style*="margin: 20px 0;"]:nth-last-child(2) {
+                margin: 20px 0;
+            }
+            
+            /* 預設鏈接文本調整 */
+            .preset-link {
+                font-size: 0.85rem;
+                word-break: break-all;
+            }
+            
+            /* 輸入框調整 */
+            input[type="text"] {
+                padding: 12px;
+                font-size: 16px;
+                margin: 15px 0;
+                width: 100%;
+            }
+            
+            /* 節點鏈接文本調整 */
+            .link {
+                font-size: 0.85rem;
+                line-height: 1.6;
+            }
+            
+            /* 文本行高調整 */
+            p {
+                line-height: 1.5;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+       <div style="position: absolute; top: 10px; right: 10px;">
+        <a href="https://github.com/endcpc/cfip" target="_blank" style="color: #FF9800; text-decoration: none; font-weight: bold;">作者GitHub>></a>
+       </div><br/>
+
+      <h1>手搓VLESS節點生成器</h1>
+
+      <div style="margin: 20px 0;">
+        <label for="uuidInput" style="display: block; margin-bottom: 5px; font-weight: 600; text-align: left;">UUID:</label>
+        <input type="text" id="uuidInput" placeholder="04c808e2-0b59-47b0-a54b-32fc7ef1c902" style="width: 100%; padding: 8px; margin: 5px 0; border-radius: 8px; border: 1px solid #ddd;">
+      </div>
+
+            <div style="margin: 20px 0;">
+        <label for="custom3Input" style="display: block; margin-bottom: 5px; font-weight: 600; text-align: left;">反代IP</label>
+        <input type="text" id="custom3Input" placeholder="proxyip.cmliussss.net" style="width: 100%; padding: 8px; margin: 5px 0; border-radius: 8px; border: 1px solid #ddd;">
+      </div>
+      
+      <div style="margin: 20px 0;">
+        <label for="domainInput" style="display: block; margin-bottom: 5px; font-weight: 600; text-align: left;">部署域名:</label>
+        <input type="text" id="domainInput" placeholder="cf.cloudip.ggff.net" style="width: 100%; padding: 8px; margin: 5px 0; border-radius: 8px; border: 1px solid #ddd;">
+      </div>
+      
+      <div style="margin: 20px 0; text-align: left;">
+        <label for="ipSourceInput" style="display: block; margin-bottom: 5px; font-weight: 600; text-align: left;">IP來源網址:</label>
+        <input type="text" id="ipSourceInput" placeholder="https://raw.githubusercontent.com/endcpc/cfip/refs/heads/main/Me.txt" style="width: 100%; padding: 8px; margin: 5px 0; border-radius: 8px; border: 1px solid #ddd; display: none;">
+        <select id="presetIpSelect" style="width: 100%; padding: 8px; margin: 5px 0; border-radius: 8px; border: 1px solid #ddd;">
+
+          <option value="https://raw.githubusercontent.com/endcpc/cfip/refs/heads/main/Me.txt">運營商IP</option>
+          <option value="https://raw.githubusercontent.com/endcpc/cfip/refs/heads/main/SG.txt">新加坡IP</option>
+          <option value="https://raw.githubusercontent.com/endcpc/cfip/refs/heads/main/JP.txt">日本IP</option>
+          <option value="https://raw.githubusercontent.com/endcpc/cfip/refs/heads/main/US.txt">美國IP</option>
+          <option value="https://raw.githubusercontent.com/endcpc/cfip/refs/heads/main/DE.txt">德國IP</option>
+          <option value="https://raw.githubusercontent.com/endcpc/cfip/refs/heads/main/NL.txt">荷蘭IP</option>
+          <option value="https://raw.githubusercontent.com/endcpc/cfip/refs/heads/main/country.txt">網絡IP</option>
+          <option value="https://raw.githubusercontent.com/endcpc/cfip/refs/heads/main/Cdtools.txt">優選IP</option>
+          <option value="https://raw.githubusercontent.com/endcpc/cfip/refs/heads/main/Cfxyz.txt">測速IP</option>
+         <option value="https://raw.githubusercontent.com/endcpc/cfip/refs/heads/main/More.txt">更多IP</option>
+
+        </select>
+
+<div style="font-size: 12px;color: #FF9800; text-align: center;">使用方法：輸入自己的UUID，部署域名，或使用默認的UUID，部署域名，再選預設IP來源後一鍵生成節點。</div>
+
+      <div style="text-align: center;"><button id="generateBtn" class="copy-all-btn generate-btn">一鍵生成節點</button></div>
+
+<div style="font-size: 12px;color: #FF9800; text-align: center;">公益節點有流量限制，建議使用<a href="https://github.com/gslege/CloudflareIP/blob/main/CF-Worker/_worker.js"  target="_blank" style="color: #888888; text-decoration: none; font-weight: bold;">_worker.js</a>自己部署！</div>
+
+<div style="text-align: center;"><button id="copyAllBtn" class="copy-all-btn">一鍵複製全部</button></div>  
+
+<div style="font-size: 12px;color: #FF9800; text-align: center;">一鍵複製Vless節點後推薦導入<b>v2ray</b>或<b>karing</b>中使用。</div> 
+
+</div>     
+
+      <div id="results"></div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+
+            // 默認UUID、域名和IP來源網址
+            const defaultUUID = '04c808e2-0b59-47b0-a54b-32fc7ef1c902';
+            const defaultDomain = 'cf.cloudip.ggff.net';
+            const defaultCustom3 = 'proxyip.cmliussss.net';
+            const defaultIpSource = 'https://raw.githubusercontent.com/endcpc/cfip/refs/heads/main/Me.txt';
+            
+            // 預設IP來源鏈接點擊事件
+            const presetLinks = document.querySelectorAll('.preset-link');
+            presetLinks.forEach(link => {
+                link.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    const url = link.href;
+                    const ipSourceInput = document.getElementById('ipSourceInput');
+                    
+                    // 填充到輸入框
+                    ipSourceInput.value = url;
+                    
+                    // 複製到剪貼板
+                    navigator.clipboard.writeText(url)
+                        .then(() => {
+                            // 提供視覺反饋
+                            const originalColor = link.style.color;
+                            link.style.color = '#4CAF50';
+                            setTimeout(() => {
+                                link.style.color = originalColor;
+                            }, 1000);
+                        })
+                        .catch(err => {
+                            console.error('複製失敗:', err);
+                        });
+                });
+            });
+
+            // 預設IP來源下拉菜單事件
+            const presetIpSelect = document.getElementById('presetIpSelect');
+            presetIpSelect.addEventListener('change', () => {
+                const selectedUrl = presetIpSelect.value;
+                const ipSourceInput = document.getElementById('ipSourceInput');
+                
+                // 填充到輸入框
+                if (selectedUrl) {
+                    ipSourceInput.value = selectedUrl;
+                    
+                    // 複製到剪貼板
+                    navigator.clipboard.writeText(selectedUrl)
+                        .then(() => {
+                            // 提供視覺反饋
+                            const originalColor = presetIpSelect.style.color;
+                            presetIpSelect.style.color = '#4CAF50';
+                            setTimeout(() => {
+                                presetIpSelect.style.color = originalColor;
+                            }, 1000);
+                        })
+                        .catch(err => {
+                            console.error('複製失敗:', err);
+                        });
+                }
+            });
+
+            // 生成鏈接函數
+            async function generateLinks(uuid = defaultUUID, domain = defaultDomain, ipSource = defaultIpSource, custom3 = defaultCustom3) {
+                const resultsDiv = document.getElementById('results');
+                resultsDiv.innerHTML = '<p>正在獲取內容並生成鏈接，請稍候...</p>';
+
+                try {
+                    const url = ipSource;
+                    const response = await fetch(url);
+                    const content = await response.text();
+
+                    // 解析每一行IP#名稱
+                    const lines = content.split('\n').filter(line => line.trim());
+                    
+                    if (lines.length === 0) {
+                        resultsDiv.innerHTML = '<p>未找到任何IP和名稱</p>';
+                        return;
+                    }
+
+                    // VLESS鏈接模板
+                    const vlessTemplate = `vless://${uuid}@自定義1:443?encryption=none&security=tls&sni=${domain}&fp=random&insecure=0&allowInsecure=0&type=ws&host=${domain}&path=pyip%3D${custom3}#自定義2`;
+
+                    // 生成VLESS鏈接
+                    const links = [];
+                    
+                    lines.forEach((line, index) => {
+                        // 分離IP和名稱
+                        const [ip, name = `服務器${index + 1}`] = line.trim().split('#');
+                        
+                        // 驗證IP格式
+                        const ipRegex = /^\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}$/;
+                        if (!ipRegex.test(ip)) return;
+                        
+                        const vlessLink = vlessTemplate.replace('自定義1', ip).replace('自定義2', name).replace('自定義3', custom3);
+                        links.push(`<li>${name}<span class="link">${vlessLink}</span><span class="copy-tip">已複製</span></li>`);
+                    });
+                    
+                    const linksHTML = links.join('');
+
+                    resultsDiv.innerHTML = `
+                        <ul style="list-style-type: none; padding: 0; text-align: left;">${linksHTML}</ul>
+                        <p>共生成 ${links.length} 個鏈接</p>
+                    `;
+
+                    // 爲每個節點添加點擊複製功能
+                    const listItems = document.querySelectorAll('#results li');
+                    listItems.forEach(item => {
+                        item.addEventListener('click', async () => {
+                            const linkSpan = item.querySelector('.link');
+                            const copyTip = item.querySelector('.copy-tip');
+                            if (!linkSpan) return;
+                            
+                            const linkText = linkSpan.textContent;
+                            try {
+                                await navigator.clipboard.writeText(linkText);
+                                // 提供視覺反饋
+                                const originalBg = item.style.backgroundColor;
+                                item.style.backgroundColor = '#e8f5e9';
+                                
+                                // 顯示已複製提示
+                                if (copyTip) {
+                                    copyTip.style.opacity = '1';
+                                }
+                                
+                                // 1秒後恢復原背景色和隱藏提示
+                                setTimeout(() => {
+                                    item.style.backgroundColor = originalBg || '';
+                                    if (copyTip) {
+                                        copyTip.style.opacity = '0';
+                                    }
+                                }, 1000);
+                            } catch (err) {
+                                console.error('複製失敗:', err);
+                                alert('複製失敗，請重試');
+                            }
+                        });
+                    });
+                } catch (error) {
+                    resultsDiv.innerHTML = `<p>生成失敗: ${error.message}</p>`;
+                }
+            }
+
+            // 頁面加載時使用默認值生成鏈接
+            generateLinks();
+
+            // 一鍵生成按鈕事件
+            document.getElementById('generateBtn').addEventListener('click', () => {
+                const uuid = document.getElementById('uuidInput').value || defaultUUID;
+                const domain = document.getElementById('domainInput').value || defaultDomain;
+                const ipSource = document.getElementById('ipSourceInput').value || defaultIpSource;
+                const custom3 = document.getElementById('custom3Input').value || defaultCustom3;
+                generateLinks(uuid, domain, ipSource, custom3);
+            });
+
+            // 一鍵複製全部鏈接功能
+            document.getElementById('copyAllBtn').addEventListener('click', async () => {
+                const links = document.querySelectorAll('.link');
+                if (links.length === 0) {
+                    alert('沒有可複製的鏈接');
+                    return;
+                }
+
+                const text = Array.from(links).map(link => link.textContent).join('\n');
+                try {
+                    await navigator.clipboard.writeText(text);
+                    const btn = document.getElementById('copyAllBtn');
+                    const originalText = btn.textContent;
+                    btn.textContent = '已複製';
+                    btn.classList.add('copied');
+                    setTimeout(() => {
+                        btn.textContent = originalText;
+                        btn.classList.remove('copied');
+                    }, 1500);
+                } catch (err) {
+                    console.error('複製失敗:', err);
+                    alert('複製失敗，請重試');
+                }
+            });
+        });
+    </script>
+</body>
+</html>
